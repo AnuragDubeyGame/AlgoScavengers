@@ -5,13 +5,16 @@ using System;
 using UnityEngine;
 using Algorand.Unity;
 using UnityEngine.UI;
+using Algorand.Unity.Samples.YourFirstTransaction;
 
 public class MainMenuManager : MonoBehaviour
 {
-    private Text publicKey_Txt;
-
     public static string PublicKey { get; private set; } = "";
-    public static string PrivateKey { get; private set; } = "";
+    public static string _PrivateKey { get; private set; } = "";
+
+    
+    public YourFirstTransaction transactionManager;
+    private float TokenToMint = 5;
 
     private void Start()
     {
@@ -23,14 +26,21 @@ public class MainMenuManager : MonoBehaviour
         else
         {
             FetchAndPrintAccountPublicKey();
-            SetUpUI();
         }
+        SetUpUI();
     }
     private void SetUpUI()
     {
-        publicKey_Txt = GameObject.Find("PublicKey_Txt").GetComponent<Text>();
-        publicKey_Txt.text = PublicKey;
-            
+        transactionManager = FindAnyObjectByType<YourFirstTransaction>();
+        transactionManager.CheckAlgodStatus();
+        transactionManager.CheckIndexerStatus();
+
+        transactionManager.Account = new Account(PrivateKey.FromString(DecryptPrivateKey(_PrivateKey, "mysecretsalt")));
+        transactionManager.GenerateAccount();
+        transactionManager.CheckBalance();  
+
+        transactionManager.RecipientText = PublicKey;
+        transactionManager.PayAmountText = (TokenToMint).ToString();
     }
     private bool IsFirstTime()
     {
@@ -61,7 +71,8 @@ public class MainMenuManager : MonoBehaviour
             Debug.Log("Account Public Key: " + address);
             Debug.Log("Account Private Key Encrypted: " + privatekey);
             PublicKey = address;
-            PrivateKey = privatekey;
+            _PrivateKey = privatekey;
+            //Debug.Log("Account Memenomic Key Decrypted: " + PrivateKey.FromString(DecryptPrivateKey(privatekey, "mysecretsalt")).ToString());
         }
         else
         {

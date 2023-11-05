@@ -1,11 +1,16 @@
 using Cysharp.Threading.Tasks;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 namespace Algorand.Unity.Samples.YourFirstTransaction
 {
     public class YourFirstTransaction : MonoBehaviour
     {
+
+
         public AlgodClient algod = new("https://testnet-api.algonode.cloud");
 
         public IndexerClient indexer = new("https://testnet-idx.algonode.cloud");
@@ -19,6 +24,12 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
 
         [field: SerializeField]
         public string PayAmountText { get; set; }
+
+        [field: SerializeField]
+        public InputField RecepientTxtField;
+        [field: SerializeField]
+        public InputField PaymentAmountField;
+        public Text SCTBlanceField;
 
         [Space]
         public UnityEvent<string> onCheckAlgodStatus;
@@ -43,7 +54,12 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
 
         public MicroAlgos Balance { get; set; }
 
+        public ulong SCTBalance { get; set; }
         public Account Account { get; set; }
+
+        private string OwnerPK = "Q+iArXlfKuQ+SPjXgprZBTYZfnKQqmWHH8nsctCOiOWpgx0hDtpwHOKNOfFf9NYPD27+OCIx+RdjBNjEkeD05g==";
+
+        AssetIndex SCT_INDEX = new AssetIndex(468833490);
 
         public string TxnStatus
         {
@@ -83,7 +99,6 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
 
         public void GenerateAccount()
         {
-            Account = Account.GenerateAccount();
             onAccountGenerated?.Invoke(Account.Address.ToString());
             onBalanceTextUpdated?.Invoke(Balance.ToAlgos().ToString("F6"));
         }
@@ -101,18 +116,38 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
         private async UniTaskVoid CheckBalanceAsync()
         {
             var (err, resp) = await indexer.LookupAccountByID(Account.Address);
+            
             if (err)
             {
                 Balance = 0;
+                SCTBalance = 0;
                 if (!err.Message.Contains("no accounts found for address")) Debug.LogError(err);
             }
             else
             {
                 Balance = resp.Account.Amount;
+                foreach (var asa in resp.Account.Assets)
+                {
+                    if(asa.AssetId == SCT_INDEX)
+                    {
+                        print("SCT Token Found : "+asa.AssetId);
+                        print("SCT Token Balance : "+asa.Amount);
+                        SCTBalance = asa.Amount;
+                    }
+                    else
+                    {
+                        Debug.Log("Didnt Found SCT Token!");
+                    }
+                }
+
+                SCTBlanceField.text = SCTBalance.ToString();
             }
 
             onBalanceTextUpdated?.Invoke(Balance.ToAlgos().ToString("F6"));
             if (Balance >= 1_000) onEnoughBalanceForPayment?.Invoke();
+
+            RecepientTxtField.text = RecipientText;
+            PaymentAmountField.text = PayAmountText;
         }
 
         public void MakePayment()
@@ -144,17 +179,26 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
                 return;
             }
 
-            // Construct and sign the payment transaction
-            var paymentTxn = Transaction.Payment(
-                Account.Address,
-                txnParams,
-                recipientAddress,
-                MicroAlgos.FromAlgos(payAmountAlgos)
-            );
-            var signedTxn = Account.SignTxn(paymentTxn);
+            //OPTIN FOR SCT
+            var optinTxn = Transaction.AssetTransfer(Account.Address, txnParams, SCT_INDEX, 0, Account.Address);
+            var signedoptinTxn = Account.SignTxn(optinTxn);
+            var (OptinsendTxnError, Optintxid) = await algod.SendTransaction(signedoptinTxn);
+            if (OptinsendTxnError)
+            {
+                Debug.LogError(OptinsendTxnError);
+                TxnStatus = $"error: {OptinsendTxnError}";
+                return;
+            }
+            else
+            {
+                print("Successfully Opted For SCT Token");
+            }
 
-            // Send the transaction
-            var (sendTxnError, txid) = await algod.SendTransaction(signedTxn);
+            //Send SCT
+            Account OwnerAcc = new Account(PrivateKey.FromString(OwnerPK));
+            var assetTransferTransaction = Transaction.AssetTransfer(OwnerAcc.Address, txnParams, SCT_INDEX, ulong.Parse(PayAmountText) * 10, Account.Address);
+            var signedAssetTxn = OwnerAcc.SignTxn(assetTransferTransaction);
+            var (sendTxnError, txid) = await algod.SendTransaction(signedAssetTxn);
             if (sendTxnError)
             {
                 Debug.LogError(sendTxnError);

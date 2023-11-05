@@ -1,20 +1,22 @@
 using UnityEngine;
 using UnityEngine.UI;
-using Algorand.Unity;
 
-public class NftDisplayBox : MonoBehaviour
+namespace Algorand.Unity.Samples.NftViewer
 {
-    public Image image;
-    public Text nameText;
-    public Text idText;
-
-    public void SetFields(Texture texture, string name, string id)
+    public class NftDisplayBox : MonoBehaviour
     {
-        nameText.text = name;
-        idText.text = id;
-        image.sprite = Sprite.Create(
-            (Texture2D)texture,
-            new Rect(0, 0, texture.width, texture.height),
-            Vector2.zero);
+        public Image image;
+        public Text nameText;
+        public Text idText;
+
+        public void SetFields(Texture texture, string name, string id)
+        {
+            nameText.text = name;
+            idText.text = id;
+            image.sprite = Sprite.Create(
+                (Texture2D)texture,
+                new Rect(0, 0, texture.width, texture.height),
+                Vector2.zero);
+        }
     }
 }

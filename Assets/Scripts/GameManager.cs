@@ -48,8 +48,8 @@ public class GameManager : MonoBehaviour {
 		levelText = GameObject.Find ("LevelText").GetComponent<Text>();
 		RestartGame_Btn = GameObject.Find ("RestartBtn");
         ClaimBtn = GameObject.Find ("ClaimBtn");
-		RestartGame_Btn.GetComponent<Button>().onClick.AddListener(delegate { RestartGame(); });
-        ClaimBtn.GetComponent<Button>().onClick.AddListener(delegate { GoToMainMenu(); });
+		RestartGame_Btn?.GetComponent<Button>()?.onClick.AddListener(delegate { RestartGame(); });
+        ClaimBtn.GetComponent<Button>()?.onClick.AddListener(delegate { GoToMainMenu(); });
 		RestartGame_Btn.SetActive(false);
 		ClaimBtn.SetActive(false);
 		levelText.text = "Day " + level;
@@ -93,9 +93,7 @@ public class GameManager : MonoBehaviour {
         ClaimBtn.SetActive(false);
         doingSetup = true;
         playersTurn = false;
-        level = 0;
         enemies.Clear();
-        playerFoodPoints = 100;
         FindObjectOfType<Player>().foodText.text = "Food: " + playerFoodPoints;
         FindObjectOfType<Player>().SetFood(playerFoodPoints);
         doingSetup = false;
@@ -108,12 +106,14 @@ public class GameManager : MonoBehaviour {
 		SceneManager.LoadScene("MainMenu");
 		yield return new WaitForSeconds (0.35f);
 		mainMenuManager = FindObjectOfType<MainMenuManager>();
-		mainMenuManager.TokenToMint = level * 25;
+		mainMenuManager.TokenToMint = (level * (playerFoodPoints + 1) * 3) / 4;
 		mainMenuManager.setPaymentAmount();
 		mainMenuManager.GameBG.SetActive(false);
-	}
+        playerFoodPoints = 100;
+        level = 0;
+    }
 
-	private void HideLevelImage() { 
+    private void HideLevelImage() { 
 		levelImage.SetActive(false);
 		doingSetup = false;
 	}

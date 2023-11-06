@@ -7,6 +7,7 @@ using Algorand.Unity;
 using UnityEngine.UI;
 using Algorand.Unity.Samples.YourFirstTransaction;
 using UnityEngine.SceneManagement;
+using UnityEditor;
 
 public class MainMenuManager : MonoBehaviour
 {
@@ -22,6 +23,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void Start()
     {
+        transactionManager = FindAnyObjectByType<YourFirstTransaction>();
         if (IsFirstTime())
         {
             print("Its First Time, Creating a New Account!");
@@ -71,6 +73,10 @@ public class MainMenuManager : MonoBehaviour
 
         PlayerPrefs.SetString("MyAddress", address);
         PlayerPrefs.SetString("MyPrivateKey", EncryptPrivateKey(privateKey.ToString(), "mysecretsalt"));
+
+        PublicKey = address;
+        _PrivateKey = EncryptPrivateKey(privateKey.ToString(), "mysecretsalt");
+        transactionManager.Account = new Account(PrivateKey.FromString(DecryptPrivateKey(_PrivateKey, "mysecretsalt")));
         SetNotFirstTime();
     }
     public void Play()
@@ -153,4 +159,11 @@ public class MainMenuManager : MonoBehaviour
             }
         }
     }
+
+/*    [MenuItem("Developer/Delete All Data")]
+    private static void DeleteAllData()
+    {
+        PlayerPrefs.DeleteAll();
+        Debug.Log("All player data has been deleted.");
+    }*/
 }

@@ -129,19 +129,26 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
             }
             else
             {
-                Balance = resp.Account.Amount;
-                foreach (var asa in resp.Account.Assets)
+                try
                 {
-                    if(asa.AssetId == SCT_INDEX)
+
+                    Balance = resp.Account.Amount;
+                    foreach (var asa in resp.Account.Assets)
                     {
-                        print("SCT Token Found : "+asa.AssetId);
-                        print("SCT Token Balance : "+asa.Amount);
-                        SCTBalance = asa.Amount;
+                        if(asa.AssetId == SCT_INDEX)
+                        {
+                            print("SCT Token Found : "+asa.AssetId);
+                            print("SCT Token Balance : "+asa.Amount);
+                            SCTBalance = asa.Amount;
+                        }
+                        else
+                        {
+                            Debug.Log("Didnt Found SCT Token!");
+                        }
                     }
-                    else
-                    {
-                        Debug.Log("Didnt Found SCT Token!");
-                    }
+                }catch(Exception e)
+                {
+                    print(e.ToString());
                 }
                 mainMenuManager.AlgoBal_Txt.text = $"Algos : {Balance.ToAlgos()}";
                 mainMenuManager.SCTBal_Txt.text = $"SCT : {SCTBalance}";

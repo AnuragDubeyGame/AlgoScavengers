@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
+using System;
 
 public class GameManager : MonoBehaviour {
 
@@ -15,6 +15,8 @@ public class GameManager : MonoBehaviour {
 	public int playerFoodPoints = 100;
     public float restartLevelDelayAfterDeath = 3f;
     [HideInInspector] public bool playersTurn = true;
+
+	BoardManager boardManager;
 
 	private Text levelText;
 	private GameObject levelImage;
@@ -32,6 +34,7 @@ public class GameManager : MonoBehaviour {
 			Destroy (gameObject);
 
 		DontDestroyOnLoad (gameObject);
+		boardManager = FindObjectOfType<BoardManager> ();
 		enemies = new List<Enemy> ();
 		boardScript = GetComponent<BoardManager>();
 		InitGame();
@@ -68,8 +71,9 @@ public class GameManager : MonoBehaviour {
 		doingSetup = true;
 		playersTurn = false;
         level = 0;
-		enemies.Clear();
-		yield return new WaitForSeconds (1);
+        enemies.Clear();
+		Array.Clear(boardManager.outerWallTiles, 0, boardManager.outerWallTiles.Length - 1);
+        yield return new WaitForSeconds (1);
 		
 	}
 	

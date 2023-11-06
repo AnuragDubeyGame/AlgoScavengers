@@ -6,15 +6,19 @@ using UnityEngine;
 using Algorand.Unity;
 using UnityEngine.UI;
 using Algorand.Unity.Samples.YourFirstTransaction;
+using UnityEngine.SceneManagement;
 
 public class MainMenuManager : MonoBehaviour
 {
     public static string PublicKey { get; private set; } = "";
     public static string _PrivateKey { get; private set; } = "";
-
-    
-    public YourFirstTransaction transactionManager;
-    private float TokenToMint = 5;
+    public Text PubKey_Txt;
+    public Text AlgoBal_Txt;
+    public Text SCTBal_Txt;
+    public GameObject DepositFunds_Btn, Play_Btn, Refresh_Btn, canvas;
+    public GameObject GameBG;
+    private YourFirstTransaction transactionManager;
+    public float TokenToMint = 5;
 
     private void Start()
     {
@@ -22,6 +26,8 @@ public class MainMenuManager : MonoBehaviour
         {
             print("Its First Time, Creating a New Account!");
             CreateAndStoreNewAccount();
+            DepositFunds_Btn.SetActive(true);
+            Play_Btn.SetActive(false);
         }
         else
         {
@@ -35,10 +41,12 @@ public class MainMenuManager : MonoBehaviour
         transactionManager.CheckAlgodStatus();
         transactionManager.CheckIndexerStatus();
 
-        transactionManager.Account = new Account(PrivateKey.FromString(DecryptPrivateKey(_PrivateKey, "mysecretsalt")));
+        var MyAcc = new Account(PrivateKey.FromString(DecryptPrivateKey(_PrivateKey, "mysecretsalt")));
+        transactionManager.Account = MyAcc;
         transactionManager.GenerateAccount();
-        transactionManager.CheckBalance();  
-
+        transactionManager.CheckBalance();
+        var formattedKey = PublicKey.Substring(0, 7) + "......" + PublicKey.Substring(PublicKey.Length - 7, 7);
+        PubKey_Txt.text = formattedKey;
         transactionManager.RecipientText = PublicKey;
         transactionManager.PayAmountText = (TokenToMint).ToString();
     }
@@ -46,7 +54,11 @@ public class MainMenuManager : MonoBehaviour
     {
         return !PlayerPrefs.HasKey("FirstTime");
     }
-
+    public void setPaymentAmount()
+    {
+        transactionManager.PayAmountText = (TokenToMint).ToString();
+        transactionManager.PaymentAmountField.text = TokenToMint.ToString();
+    }
     private void SetNotFirstTime()
     {
         PlayerPrefs.SetInt("FirstTime", 1);
@@ -61,7 +73,10 @@ public class MainMenuManager : MonoBehaviour
         PlayerPrefs.SetString("MyPrivateKey", EncryptPrivateKey(privateKey.ToString(), "mysecretsalt"));
         SetNotFirstTime();
     }
-
+    public void Play()
+    {
+        SceneManager.LoadScene("Game");
+    }
     private void FetchAndPrintAccountPublicKey()
     {
         if (PlayerPrefs.HasKey("MyAddress"))

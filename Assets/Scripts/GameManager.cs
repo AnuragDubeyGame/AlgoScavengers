@@ -10,6 +10,7 @@ public class GameManager : MonoBehaviour {
 	public float levelStartDelay = 2f;
 	public float turnDelay = .1f;
 	public static GameManager instance = null;
+	MainMenuManager mainMenuManager;
 	public BoardManager boardScript;
 	public int playerFoodPoints = 100;
     public float restartLevelDelayAfterDeath = 3f;
@@ -17,7 +18,9 @@ public class GameManager : MonoBehaviour {
 
 	private Text levelText;
 	private GameObject levelImage;
-	private int level = 1;
+	private GameObject RestartGame_Btn;
+	private GameObject ClaimBtn;
+	private int level = 0;
 	private List<Enemy> enemies;
 	private bool enemiesMoving;
 	private bool doingSetup;
@@ -43,6 +46,12 @@ public class GameManager : MonoBehaviour {
 		doingSetup = true;
         levelImage = GameObject.Find("LevelImage");
 		levelText = GameObject.Find ("LevelText").GetComponent<Text>();
+		RestartGame_Btn = GameObject.Find ("RestartBtn");
+        ClaimBtn = GameObject.Find ("ClaimBtn");
+		RestartGame_Btn.GetComponent<Button>().onClick.AddListener(delegate { RestartGame(); });
+        ClaimBtn.GetComponent<Button>().onClick.AddListener(delegate { GoToMainMenu(); });
+		RestartGame_Btn.SetActive(false);
+		ClaimBtn.SetActive(false);
 		levelText.text = "Day " + level;
 		levelImage.SetActive(true);
 		Invoke ("HideLevelImage", levelStartDelay);
@@ -53,20 +62,55 @@ public class GameManager : MonoBehaviour {
 
 	IEnumerator ResetGameManager()
 	{
-		print("Restarting Game");
+		print("GameOver");
+		RestartGame_Btn.SetActive(true);
+		ClaimBtn.SetActive(true);
 		doingSetup = true;
+		playersTurn = false;
         level = 0;
 		enemies.Clear();
-        yield return new WaitForSeconds (3);
-		SceneManager.LoadScene (SceneManager.GetActiveScene().buildIndex);
 		yield return new WaitForSeconds (1);
-		playerFoodPoints = 100;
-		FindObjectOfType<Player>().foodText.text = "Food: " + playerFoodPoints;
-		FindObjectOfType<Player>().SetFood(playerFoodPoints);
-		enemiesMoving = false;
-		playersTurn = true;
+		
+	}
+	
+	public void RestartGame() {
+        print("Restarting Game");
+		RestartGame_Btn.SetActive(false);
+		SceneManager.LoadScene (SceneManager.GetActiveScene().buildIndex);
+        playerFoodPoints = 100;
+        FindObjectOfType<Player>().foodText.text = "Food: " + playerFoodPoints;
+        FindObjectOfType<Player>().SetFood(playerFoodPoints);
         doingSetup = false;
-		print("Restarted Game");
+        enemiesMoving = false;
+        playersTurn = true;
+        print("Restarted Game");
+    }
+
+
+	public void GoToMainMenu()
+	{
+        RestartGame_Btn.SetActive(false);
+        ClaimBtn.SetActive(false);
+        doingSetup = true;
+        playersTurn = false;
+        level = 0;
+        enemies.Clear();
+        playerFoodPoints = 100;
+        FindObjectOfType<Player>().foodText.text = "Food: " + playerFoodPoints;
+        FindObjectOfType<Player>().SetFood(playerFoodPoints);
+        doingSetup = false;
+        enemiesMoving = false;
+        playersTurn = true;
+        StartCoroutine(smm());
+	}
+	private IEnumerator smm()
+	{
+		SceneManager.LoadScene("MainMenu");
+		yield return new WaitForSeconds (0.35f);
+		mainMenuManager = FindObjectOfType<MainMenuManager>();
+		mainMenuManager.TokenToMint = level * 25;
+		mainMenuManager.setPaymentAmount();
+		mainMenuManager.GameBG.SetActive(false);
 	}
 
 	private void HideLevelImage() { 
@@ -112,47 +156,4 @@ public class GameManager : MonoBehaviour {
 }
 
 
-/*
- API TO HOST NFT = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJjMWMyMzdiNy0zMjljLTQ5N2QtOWY5Mi1jMDRmYjc4MTQwMDciLCJlbWFpbCI6ImFudXJhZ3RkMTJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjA2ZmEyYjU4ZjdhZGZlZWQzMGMyIiwic2NvcGVkS2V5U2VjcmV0IjoiMjMxNDM5MWU1MmRjYzhmMTIzZGIxOTMxZGM1Nzg0ZmZiYjhjNDAzMzcxMGNkNjk1NWEwOWE4Y2JmZGJmZmEzMyIsImlhdCI6MTY5OTAyNTkyOX0.KTlLzC8DO_ETAxC7iKnMKEIq6_4cr-8gv9Y27Tf2Mkg
-
-
-const axios = require('axios')
-const FormData = require('form-data')
-const fs = require('fs')
-const JWT = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJjMWMyMzdiNy0zMjljLTQ5N2QtOWY5Mi1jMDRmYjc4MTQwMDciLCJlbWFpbCI6ImFudXJhZ3RkMTJAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjA2ZmEyYjU4ZjdhZGZlZWQzMGMyIiwic2NvcGVkS2V5U2VjcmV0IjoiMjMxNDM5MWU1MmRjYzhmMTIzZGIxOTMxZGM1Nzg0ZmZiYjhjNDAzMzcxMGNkNjk1NWEwOWE4Y2JmZGJmZmEzMyIsImlhdCI6MTY5OTAyNTkyOX0.KTlLzC8DO_ETAxC7iKnMKEIq6_4cr-8gv9Y27Tf2Mkg
-
-const pinFileToIPFS = async () => {
-    const formData = new FormData();
-    const src = "path/to/file.png";
-    
-    const file = fs.createReadStream(src)
-    formData.append('file', file)
-    
-    const pinataMetadata = JSON.stringify({
-      name: 'File name',
-    });
-    formData.append('pinataMetadata', pinataMetadata);
-    
-    const pinataOptions = JSON.stringify({
-      cidVersion: 0,
-    })
-    formData.append('pinataOptions', pinataOptions);
-
-    try{
-      const res = await axios.post("https://api.pinata.cloud/pinning/pinFileToIPFS", formData, {
-        maxBodyLength: "Infinity",
-        headers: {
-          'Content-Type': `multipart/form-data; boundary=${formData._boundary}`,
-          'Authorization': `Bearer ${JWT}`
-        }
-      });
-      console.log(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-}
-pinFileToIPFS()
-
- 
- */
 

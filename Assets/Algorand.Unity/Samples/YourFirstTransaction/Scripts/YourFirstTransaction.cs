@@ -9,7 +9,7 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
 {
     public class YourFirstTransaction : MonoBehaviour
     {
-
+        MainMenuManager mainMenuManager;
 
         public AlgodClient algod = new("https://testnet-api.algonode.cloud");
 
@@ -73,6 +73,10 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
 
         public string ConfirmedTxnId { get; set; }
 
+        private void Start()
+        {
+            mainMenuManager = FindObjectOfType<MainMenuManager>();
+        }
         public void CheckAlgodStatus()
         {
             CheckAlgodStatusAsync().Forget();
@@ -139,8 +143,22 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
                         Debug.Log("Didnt Found SCT Token!");
                     }
                 }
-
+                mainMenuManager.AlgoBal_Txt.text = $"Algos : {Balance.ToAlgos()}";
+                mainMenuManager.SCTBal_Txt.text = $"SCT : {SCTBalance}";
                 SCTBlanceField.text = SCTBalance.ToString();
+
+                if(Balance.ToAlgos() > 0)
+                {
+                    mainMenuManager.Play_Btn.SetActive(true);
+                    mainMenuManager.Refresh_Btn.SetActive(false);
+                    mainMenuManager.DepositFunds_Btn.SetActive(false);
+                }
+                else
+                {
+                    mainMenuManager.Play_Btn.SetActive(false);
+                    mainMenuManager.Refresh_Btn.SetActive(true);
+                    mainMenuManager.DepositFunds_Btn.SetActive(true);
+                }
             }
 
             onBalanceTextUpdated?.Invoke(Balance.ToAlgos().ToString("F6"));
@@ -222,6 +240,7 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
 
         public void ViewConfirmedTransaction()
         {
+            CheckBalance();
             Application.OpenURL(string.Format(viewTransactionUrl, ConfirmedTxnId));
         }
     }

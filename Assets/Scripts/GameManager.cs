@@ -110,7 +110,7 @@ public class GameManager : MonoBehaviour {
 		SceneManager.LoadScene("MainMenu");
 		yield return new WaitForSeconds (0.35f);
 		mainMenuManager = FindObjectOfType<MainMenuManager>();
-		mainMenuManager.TokenToMint = (level * 5) / 4;
+		mainMenuManager.TokenToMint = (level * 5);
 		mainMenuManager.setPaymentAmount();
 		mainMenuManager.GameBG.SetActive(false);
         playerFoodPoints = 100;

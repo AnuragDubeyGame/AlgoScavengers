@@ -19,7 +19,7 @@ public class MainMenuManager : MonoBehaviour
     public GameObject DepositFunds_Btn, Play_Btn, Refresh_Btn, canvas;
     public GameObject GameBG;
     private YourFirstTransaction transactionManager;
-    public float TokenToMint = 5;
+    public float TokenToMint;
 
     private void Start()
     {

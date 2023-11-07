@@ -16,7 +16,6 @@ public class GameManager : MonoBehaviour {
     public float restartLevelDelayAfterDeath = 3f;
     [HideInInspector] public bool playersTurn = true;
 
-	BoardManager boardManager;
 
 	private Text levelText;
 	private GameObject levelImage;
@@ -26,6 +25,7 @@ public class GameManager : MonoBehaviour {
 	private List<Enemy> enemies;
 	private bool enemiesMoving;
 	private bool doingSetup;
+	private int currlvl;
 
 	void Awake () {
 		if (instance == null)
@@ -34,7 +34,6 @@ public class GameManager : MonoBehaviour {
 			Destroy (gameObject);
 
 		DontDestroyOnLoad (gameObject);
-		boardManager = FindObjectOfType<BoardManager> ();
 		enemies = new List<Enemy> ();
 		boardScript = GetComponent<BoardManager>();
 		InitGame();
@@ -72,7 +71,6 @@ public class GameManager : MonoBehaviour {
 		playersTurn = false;
         level = 0;
         enemies.Clear();
-		Array.Clear(boardManager.outerWallTiles, 0, boardManager.outerWallTiles.Length - 1);
         yield return new WaitForSeconds (1);
 		
 	}
@@ -80,7 +78,7 @@ public class GameManager : MonoBehaviour {
 	public void RestartGame() {
         print("Restarting Game");
 		RestartGame_Btn.SetActive(false);
-		SceneManager.LoadScene (SceneManager.GetActiveScene().buildIndex);
+        SceneManager.LoadScene (SceneManager.GetActiveScene().buildIndex);
         playerFoodPoints = 100;
         FindObjectOfType<Player>().foodText.text = "Food: " + playerFoodPoints;
         FindObjectOfType<Player>().SetFood(playerFoodPoints);
@@ -93,6 +91,7 @@ public class GameManager : MonoBehaviour {
 
 	public void GoToMainMenu()
 	{
+		print("Current Lvl :  " + currlvl);
         RestartGame_Btn.SetActive(false);
         ClaimBtn.SetActive(false);
         doingSetup = true;
@@ -110,9 +109,10 @@ public class GameManager : MonoBehaviour {
 		SceneManager.LoadScene("MainMenu");
 		yield return new WaitForSeconds (0.35f);
 		mainMenuManager = FindObjectOfType<MainMenuManager>();
-		mainMenuManager.TokenToMint = (level * 5);
-		mainMenuManager.setPaymentAmount();
+		mainMenuManager.TokenToMint = (currlvl * 12) / 2;
 		mainMenuManager.GameBG.SetActive(false);
+		yield return new WaitForSeconds (0.2f);
+		mainMenuManager.setPaymentAmount();
         playerFoodPoints = 100;
         level = 0;
     }
@@ -125,7 +125,8 @@ public class GameManager : MonoBehaviour {
 	public void GameOver() {
 		levelText.text = "After " + level + " days, you starved.";
 		levelImage.SetActive(true);
-		StartCoroutine(ResetGameManager());
+		currlvl = level;
+        StartCoroutine(ResetGameManager());
     }
 
     // Update is called once per frame

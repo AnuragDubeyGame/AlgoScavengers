@@ -151,8 +151,8 @@ namespace Algorand.Unity.Samples.YourFirstTransaction
                     print(e.ToString());
                 }
                 mainMenuManager.AlgoBal_Txt.text = $"Algos : {Balance.ToAlgos()}";
-                mainMenuManager.SCTBal_Txt.text = $"SCT : {SCTBalance}";
-                SCTBlanceField.text = SCTBalance.ToString();
+                mainMenuManager.SCTBal_Txt.text = $"SCT : {SCTBalance / 10}";
+                SCTBlanceField.text = (SCTBalance / 10).ToString();
 
                 if(Balance.ToAlgos() > 0)
                 {
